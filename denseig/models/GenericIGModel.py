@@ -1,11 +1,12 @@
 from torch import nn 
 
 class IGModel(nn.Module):
-    def __init__(self, query_model, doc_model, pooler):
+    def __init__(self, query_model, doc_model, pooler, score):
         super(IGModel, self).__init__()
         self.pooler = pooler
         self.query_model = query_model
         self.doc_model = doc_model
+        self.score = score
 
     def forward_with_features(self, features, model):
         trans_features = {"input_ids": features["input_ids"], "attention_mask": features["attention_mask"]}
@@ -34,5 +35,5 @@ class IGModel(nn.Module):
         features_doc = {'input_ids': doc_input_ids, 'attention_mask' : doc_attention_mask}
         q_emb = self.forward_with_features(features_query, self.query_model)
         doc_emb = self.forward_with_features(features_doc, self.doc_model)
-        score = dot_score(q_emb, doc_emb)
+        score = self.score(q_emb, doc_emb)
         return score
